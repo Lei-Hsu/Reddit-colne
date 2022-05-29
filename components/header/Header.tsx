@@ -1,3 +1,4 @@
+import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import React from 'react';
 
@@ -7,6 +8,7 @@ import {
 import { ChevronDownIcon, HomeIcon, MenuIcon, SearchIcon } from '@heroicons/react/solid';
 
 const Header = () => {
+  const { data: session } = useSession()
   return (
     <div className="sticky top-0 z-50 flex items-center bg-white px-4 py-2 shadow-md">
       <div className="relative h-10 w-20 flex-shrink-0 cursor-pointer">
@@ -47,19 +49,44 @@ const Header = () => {
       <div className="ml-5 lg:hidden">
         <MenuIcon className="icon" />
       </div>
+      {session ? (
+        <div
+          className="hidden cursor-pointer items-center space-x-2 border border-gray-100 p-2 lg:flex"
+          onClick={() => signOut()}
+        >
+          <div className="relative h-5 w-5 flex-shrink-0">
+            <Image
+              objectFit="contain"
+              src="https://links.papareact.com/231"
+              width={20}
+              height={20}
+            />
+          </div>
 
-      <div className="hidden cursor-pointer items-center space-x-2 border border-gray-100 p-2 lg:flex">
-        <div className="relative h-5 w-5 flex-shrink-0">
-          <Image
-            objectFit="contain"
-            src="https://links.papareact.com/231"
-            width={20}
-            height={20}
-          />
+          <div className="flex-1 text-sm">
+            <p className="truncate">{session?.user?.name}</p>
+            <p className="text-gray-400">1 Karma</p>
+          </div>
+
+          <ChevronDownIcon className="h-5 w-5 text-gray-400" />
         </div>
+      ) : (
+        <div
+          className="hidden cursor-pointer items-center space-x-2 border border-gray-100 p-2 lg:flex"
+          onClick={() => signIn()}
+        >
+          <div className="relative h-5 w-5 flex-shrink-0">
+            <Image
+              objectFit="contain"
+              src="https://links.papareact.com/231"
+              width={20}
+              height={20}
+            />
+          </div>
 
-        <p className="text-gray-400">Sign in</p>
-      </div>
+          <p className="text-gray-400">Sign in</p>
+        </div>
+      )}
     </div>
   )
 }
