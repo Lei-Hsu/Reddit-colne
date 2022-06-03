@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: 'https://barreirodojaiba.stepzen.net/api/filled-jellyfish/__graphql',
+  uri: 'http://localhost:5001/api/filled-jellyfish',
   headers: {
     Authentication: `Apikey ${process.env.NEXT_PUBLIC_STEPZEN_KEY}`
   },

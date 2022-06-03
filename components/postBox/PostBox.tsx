@@ -1,7 +1,12 @@
+import client from 'apollo-client';
+import { ADD_POST, ADD_SUBREDDIT } from 'graphql/mutations';
+import { GET_SUBREDDIT_BY_TOPIC } from 'graphql/queries';
 import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 
+import { useMutation } from '@apollo/client';
 import Avatar from '@Components/avatar/Avatar';
 import { LinkIcon, PhotographIcon } from '@heroicons/react/solid';
 
@@ -14,6 +19,9 @@ interface FormData {
 
 const PostBox = () => {
   const { data: session } = useSession()
+  const [addPost] = useMutation(ADD_POST)
+  const [addSubreddit] = useMutation(ADD_SUBREDDIT)
+
   const {
     register,
     setValue,
@@ -24,7 +32,64 @@ const PostBox = () => {
   const [openImageBox, setOpenImageBox] = useState<boolean>(false)
 
   const handleOnSubmit = handleSubmit(async (formData) => {
-    console.log(formData)
+    const notification = toast.loading('Creating a new post...')
+    try {
+      const response = await client.query({
+        query: GET_SUBREDDIT_BY_TOPIC,
+        variables: {
+          topic: formData.subreddit,
+        },
+      })
+      const { getSubredditListByTopic } = response.data
+
+      const subredditExists = !!getSubredditListByTopic.length
+
+      if (!subredditExists) {
+        // 如果沒有 subreddit 先創建一個
+        const insertSubRedditRes = await addSubreddit({
+          variables: {
+            topic: formData.subreddit,
+          },
+        })
+        const { insertSubReddit } = insertSubRedditRes.data
+
+        const image = formData.postImage || ''
+
+        const postRes = await addPost({
+          variables: {
+            body: formData.postBody,
+            image: image,
+            subreddit_id: insertSubReddit.id,
+            title: formData.postTitle,
+            username: session?.user?.name,
+          },
+        })
+        const { insertPost } = postRes.data
+      } else {
+        // 如果有 subReddit 就直接拿確認回來的 id 新增文章
+        const image = formData.postImage || ''
+        const postRes = await addPost({
+          variables: {
+            body: formData.postBody,
+            image: image,
+            subreddit_id: getSubredditListByTopic[0].id,
+            title: formData.postTitle,
+            username: session?.user?.name,
+          },
+        })
+        const { insertPost } = postRes.data
+        console.log(insertPost)
+      }
+
+      // reset the form
+      setValue('postBody', '')
+      setValue('postTitle', '')
+      setValue('postImage', '')
+      setValue('subreddit', '')
+      toast.success('New Post Created!', { id: notification })
+    } catch (error) {
+      toast.error('Something when wrong!', { id: notification })
+    }
   })
 
   return (
