@@ -2,6 +2,7 @@ import type { NextPage } from 'next'
 import Head from 'next/head';
 import Image from 'next/image';
 
+import Feed from '@Components/feed/Feed';
 import Header from '@Components/header/Header';
 import PostBox from '@Components/postBox/PostBox';
 
@@ -14,6 +15,10 @@ const Home: NextPage = () => {
       </Head>
 
       <PostBox />
+
+      <div className="flex">
+        <Feed />
+      </div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import client from 'apollo-client';
 import { ADD_POST, ADD_SUBREDDIT } from 'graphql/mutations';
-import { GET_SUBREDDIT_BY_TOPIC } from 'graphql/queries';
+import { GET_ALL_POSTS, GET_SUBREDDIT_BY_TOPIC } from 'graphql/queries';
 import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,7 +19,9 @@ interface FormData {
 
 const PostBox = () => {
   const { data: session } = useSession()
-  const [addPost] = useMutation(ADD_POST)
+  const [addPost] = useMutation(ADD_POST, {
+    refetchQueries: [GET_ALL_POSTS, 'getPostList'],
+  })
   const [addSubreddit] = useMutation(ADD_SUBREDDIT)
 
   const {
@@ -95,7 +97,7 @@ const PostBox = () => {
   return (
     <form
       onSubmit={handleOnSubmit}
-      className="sticky top-16 z-50 rounded-md border border-gray-300 bg-white p-2"
+      className="sticky top-[58px] z-50 rounded-md border border-gray-300 bg-white p-2 lg:top-[74px]"
     >
       <div className="flex items-center space-x-3">
         <Avatar />
