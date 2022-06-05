@@ -80,4 +80,4 @@ const Post = ({ post }: PostProps) => {
   )
 }
 
-export default Post
+export default React.memo(Post)
