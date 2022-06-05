@@ -4,6 +4,7 @@ import { PostType } from 'type/type';
 
 import { useQuery } from '@apollo/client';
 import Post from '@Components/post/Post';
+import { Jelly } from '@uiball/loaders';
 
 interface FeedProps {
   topic?: string
@@ -23,6 +24,13 @@ const Feed = ({ topic }: FeedProps) => {
   }, [])
 
   const posts: PostType[] = topic ? data?.getPostListByTopic : data?.getPostList
+
+  if (!posts)
+    return (
+      <div className="mt-10 flex w-full items-center justify-center">
+        <Jelly size={80} color="#ff4501" />
+      </div>
+    )
   return (
     <div className="mt-5 w-full space-y-4">
       {posts?.map((post) => (
