@@ -1,8 +1,13 @@
+import { ADD_VOTE } from 'graphql/mutations';
+import { GET_ALL_VOTES_BY_POST_ID } from 'graphql/queries';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import TimeAgo from 'react-timeago';
-import { PostType } from 'type/type';
+import { PostType, VoteType } from 'type/type';
 
+import { useMutation, useQuery } from '@apollo/client';
 import Avatar from '@Components/avatar/Avatar';
 import {
     BookmarkIcon, ChatAltIcon, DotsHorizontalIcon, GiftIcon, ShareIcon
@@ -15,20 +20,88 @@ interface PostProps {
 }
 
 const Post = ({ post }: PostProps) => {
+  const { data: session } = useSession()
+  const [vote, setVote] = useState<boolean>()
+
+  const { data, loading } = useQuery(GET_ALL_VOTES_BY_POST_ID, {
+    variables: { post_id: post?.id },
+  })
+
+  const [addVote] = useMutation(ADD_VOTE, {
+    refetchQueries: [GET_ALL_VOTES_BY_POST_ID, 'getVotesByPostId'],
+  })
+
+  useEffect(() => {
+    const votes: VoteType[] = data?.getVotesByPostId
+
+    const vote = votes?.find(
+      (vote) => vote.username === session?.user?.name
+    )?.upvote
+
+    setVote(vote)
+  }, [data])
+
+  const handleUpVote = async (isUpVote: boolean) => {
+    if (!session) {
+      toast('You will need to sign in to Vote!')
+      return
+    }
+
+    const hasVoteAndClickUpVote = vote && isUpVote
+    const notVoteAndClickDownVote = vote === false && !isUpVote
+    if (hasVoteAndClickUpVote || notVoteAndClickDownVote) return
+
+    await addVote({
+      variables: {
+        post_id: post.id,
+        username: session?.user?.name,
+        upvote: isUpVote,
+      },
+    })
+  }
+
+  const displayVote = (data: any) => {
+    const votes: VoteType[] = data?.getVotesByPostId
+    let voteNum = 0
+    votes?.forEach((vote) => {
+      if (vote.upvote) voteNum++
+      else voteNum--
+    })
+
+    if (votes?.length === 0) return 0
+    if (voteNum === 0 && votes) {
+      return votes[0]?.upvote ? 1 : -1
+    }
+
+    return voteNum
+  }
+
+  // loading state
   if (!post)
     return (
       <div className="flex w-full items-center justify-center p-10 text-lg">
         <Jelly size={50} color="#ff4501" />
       </div>
     )
+
   return (
     <Link href={`/post/${post.id}`}>
       <div className="flex cursor-pointer rounded-md border border-gray-300 bg-white shadow-sm hover:border-2 hover:border-gray-600">
         {/* Votes */}
         <div className="flex flex-col items-center space-y-1 bg-gray-50 p-4 text-gray-400">
-          <ArrowUpIcon className="voteButtons hover:text-red-400" />
-          <p className="text-xs font-bold text-black">0</p>
-          <ArrowDownIcon className="voteButtons hover:text-blue-400" />
+          <ArrowUpIcon
+            onClick={() => handleUpVote(true)}
+            className={`voteButtons hover:text-red-400 ${
+              vote && 'text-red-400'
+            }`}
+          />
+          <p className="text-xs font-bold text-black">{displayVote(data)}</p>
+          <ArrowDownIcon
+            onClick={() => handleUpVote(false)}
+            className={`voteButtons hover:text-blue-400 ${
+              vote === false && 'text-blue-400'
+            }`}
+          />
         </div>
 
         <div className="p-3 pb-1">
