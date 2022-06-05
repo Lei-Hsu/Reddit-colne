@@ -8,12 +8,19 @@ import {
     BookmarkIcon, ChatAltIcon, DotsHorizontalIcon, GiftIcon, ShareIcon
 } from '@heroicons/react/outline';
 import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/solid';
+import { Jelly } from '@uiball/loaders';
 
 interface PostProps {
   post: PostType
 }
 
 const Post = ({ post }: PostProps) => {
+  if (!post)
+    return (
+      <div className="flex w-full items-center justify-center p-10 text-lg">
+        <Jelly size={50} color="#ff4501" />
+      </div>
+    )
   return (
     <Link href={`/post/${post.id}`}>
       <div className="flex cursor-pointer rounded-md border border-gray-300 bg-white shadow-sm hover:border-2 hover:border-gray-600">
