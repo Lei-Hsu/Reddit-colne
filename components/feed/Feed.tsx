@@ -1,14 +1,28 @@
-import { GET_ALL_POSTS } from 'graphql/queries';
-import React from 'react';
+import { GET_ALL_POSTS, GET_ALL_POSTS_BY_TOPIC } from 'graphql/queries';
+import React, { useEffect } from 'react';
 import { PostType } from 'type/type';
 
 import { useQuery } from '@apollo/client';
 import Post from '@Components/post/Post';
 
-const Feed = () => {
-  const { data, error } = useQuery(GET_ALL_POSTS)
+interface FeedProps {
+  topic?: string
+}
 
-  const posts: PostType[] = data?.getPostList
+const Feed = ({ topic }: FeedProps) => {
+  const { data, error } = topic
+    ? useQuery(GET_ALL_POSTS_BY_TOPIC, {
+        variables: { topic },
+      })
+    : useQuery(GET_ALL_POSTS)
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+    })
+  }, [])
+
+  const posts: PostType[] = topic ? data?.getPostListByTopic : data?.getPostList
   return (
     <div className="mt-5 w-full space-y-4">
       {posts?.map((post) => (
